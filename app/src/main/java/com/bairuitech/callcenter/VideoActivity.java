@@ -1,13 +1,19 @@
 package com.bairuitech.callcenter;
 
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -22,14 +28,20 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bairuitech.anychat.*;
+import com.bairuitech.bluetooth.ConnectThread;
+import com.bairuitech.bluetooth.ConnectedThread;
 import com.bairuitech.bussinesscenter.BussinessCenter;
 
 import com.bairuitech.util.*;
@@ -48,8 +60,7 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
 	private Button mBtnEndSession;
 	private Dialog dialog;
 
-    private TextView serverStateTextView;
-    private TextView orderTextView;
+
 
 	private AnyChatCoreSDK anychat;
 	private Handler mHandler;
@@ -72,6 +83,23 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
     private boolean isRunning = false;
     private ServerServer server;
 
+    //蓝牙部分
+    int REQUEST_ENABLE_BT = 1;
+    ListView list;
+    Button scanBtn;
+    BluetoothAdapter mBluetoothAdapter;
+    ArrayAdapter<String> mArrayAdapter;
+    ArrayList<BluetoothDevice> bluetoothDevices = new ArrayList<BluetoothDevice>();
+
+    /*线程成员*/
+    ConnectThread clientThread = null;
+    ConnectedThread connectedThread = null;
+
+    /*控件*/
+    TextView bluetoothStateTextView;
+    TextView serverStateTextView;
+    TextView receOrderTextView;
+    TextView sendOrderTextView;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -86,7 +114,6 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
             server = new ServerServer();
             new Thread(server).start();
             server.setMyActivity(VideoActivity.this);
-
         }
 
 		anychat.EnterRoom(BussinessCenter.sessionItem.roomId, "");
@@ -110,7 +137,39 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
 		initTimerCheckAv();
 		initTimerShowTime();
 
-	}
+        //启动蓝牙
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter == null) {
+            System.out.println("没有蓝牙设备");
+        }
+
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
+
+        list = (ListView) this.findViewById(R.id.list);
+        mArrayAdapter = new ArrayAdapter<String>(this,R.layout.item);
+        scanBtn = (Button) this.findViewById(R.id.scanBtn);
+        scanBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pairDevices task = new pairDevices();
+                task.execute();
+            }
+        });
+
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                BluetoothDevice device = bluetoothDevices.get(position);
+                System.out.println(device.getName()+" "+device.getAddress());
+                clientThread = new ConnectThread(device,mBluetoothAdapter,VideoActivity.this);
+                clientThread.start();
+            }
+        });
+
+    }
 
 	@Override
 	protected void onPause() {
@@ -218,8 +277,13 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
 
 	private void initView() {
 		this.setContentView(R.layout.video_activity);
+        /*设置控件*/
+        bluetoothStateTextView = (TextView) findViewById(R.id.bluetoothStateTextView);
         serverStateTextView = (TextView) findViewById(R.id.serverStateTextView);
-        orderTextView = (TextView) findViewById(R.id.orderTextView);
+        receOrderTextView = (TextView) findViewById(R.id.receOrderTextView);
+        sendOrderTextView = (TextView) findViewById(R.id.sendOrderTextView);
+
+        /*视频部分*/
 		mSurfaceSelf = (SurfaceView) findViewById(R.id.surface_local);
 		mSurfaceRemote = (SurfaceView) findViewById(R.id.surface_remote);
 		mProgressSelf = (ProgressBar) findViewById(R.id.progress_local);
@@ -518,18 +582,77 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
         this.isRunning = runningState;
     }
 
-    public void setState(String state)
+
+    class pairDevices extends AsyncTask<Void,Void,ArrayAdapter<String>>
     {
-        serverStateTextView.setText(state);
+
+        @Override
+        protected ArrayAdapter<String> doInBackground(Void... params) {
+            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+// If there are paired devices
+            if (pairedDevices.size() > 0) {
+                // Loop through paired devices
+                for (BluetoothDevice device : pairedDevices) {
+                    // Add the name and address to an array adapter to show in a ListView
+                    mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+                    bluetoothDevices.add(device);
+                }
+            }
+
+            return mArrayAdapter;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayAdapter<String> mArrayAdapter) {
+            list.setAdapter(mArrayAdapter);
+        }
     }
 
-    public void setOrder(final String order)
+    public void setBluetoothState(final String state)
     {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                orderTextView.setText(order);
+                bluetoothStateTextView.setText(state);
             }
         });
+    }
+
+    public void setServerState(final String state)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                serverStateTextView.setText(state);
+            }
+        });
+    }
+
+    public void setReceOrder(final String receOrder)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                receOrderTextView.setText(receOrder);
+            }
+        });
+
+        connectedThread.write(receOrder);
+    }
+
+    public void setSendOrder(final String sendOrder)
+    {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                sendOrderTextView.setText(sendOrder);
+            }
+        });
+    }
+
+    public void manageBluetoothConnectedSocket(BluetoothSocket socket)
+    {
+        connectedThread = new ConnectedThread(socket,VideoActivity.this);
+        connectedThread.start();
     }
 }

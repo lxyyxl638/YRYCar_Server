@@ -17,10 +17,13 @@
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.GET_TASKS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED"/>
 
     <application
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name"
+        android:label="3C小车服务器"
         android:theme="@android:style/Theme.NoTitleBar" >
         <activity
             android:name="LoginActivity"

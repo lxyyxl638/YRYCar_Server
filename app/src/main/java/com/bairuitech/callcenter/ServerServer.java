@@ -41,11 +41,11 @@ public class ServerServer implements Runnable {
                 }
                 myActivity.setIsRunning(true);
                 serverSocket = new ServerSocket(port);
-                myActivity.setState("服务器准备就绪");
+                myActivity.setServerState("服务器准备就绪");
                 System.out.println("服务器准备就绪");
 
                 clientSocket = serverSocket.accept();
-                myActivity.setState("已经连接上客户端");
+                myActivity.setServerState("已经连接上客户端");
                 System.out.println("已经连接上客户端");
 
             read = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -58,7 +58,7 @@ public class ServerServer implements Runnable {
                     System.out.println(message);
                     if (myActivity!=null)
                     {
-                        myActivity.setOrder(message);
+                        myActivity.setReceOrder(message);
                     }
                 }
             }

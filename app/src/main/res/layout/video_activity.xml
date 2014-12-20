@@ -28,6 +28,20 @@
         layout="@layout/video_session"
         android:gravity="center_vertical" />
 
+    <Button
+        android:id="@+id/scanBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="扫描" />
+
+    <ListView
+        android:id="@+id/list"
+        android:layout_width="wrap_content"
+        android:layout_height="140dp"
+        android:layout_below="@id/scanBtn"
+        android:divider="#0f0"
+        android:dividerHeight="2px"
+        android:headerDividersEnabled="false" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -57,11 +71,51 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="蓝牙状态:"
+            android:textSize="20sp"
+            android:layout_weight="2"/>
+        <TextView
+            android:id="@+id/bluetoothStateTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text = ""/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="收到的指令:"
             android:textSize="20sp"
             android:layout_weight="2"/>
         <TextView
-            android:id="@+id/orderTextView"
+            android:id="@+id/receOrderTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text = ""/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="发送的指令:"
+            android:textSize="20sp"
+            android:layout_weight="2"/>
+        <TextView
+            android:id="@+id/sendOrderTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
