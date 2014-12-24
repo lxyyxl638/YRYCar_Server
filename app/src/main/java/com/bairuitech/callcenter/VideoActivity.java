@@ -636,8 +636,9 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
                 receOrderTextView.setText(receOrder);
             }
         });
-
-        connectedThread.write(receOrder);
+        if (connectedThread != null) {
+            connectedThread.write(receOrder);
+        }
     }
 
     public void setSendOrder(final String sendOrder)
