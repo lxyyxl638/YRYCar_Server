@@ -1,5 +1,6 @@
 package com.bairuitech.callcenter;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.Timer;
@@ -12,11 +13,18 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -40,13 +48,19 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bairuitech.anychat.*;
+import com.bairuitech.bluetooth.AcceptThread;
 import com.bairuitech.bluetooth.ConnectThread;
 import com.bairuitech.bluetooth.ConnectedThread;
 import com.bairuitech.bussinesscenter.BussinessCenter;
 
 import com.bairuitech.util.*;
 import com.bairuitech.callcenter.R;
+import com.facepp.error.FaceppParseException;
+import com.facepp.http.HttpRequests;
+import com.facepp.http.PostParameters;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 public class VideoActivity extends Activity implements AnyChatBaseEvent,
@@ -92,6 +106,7 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
     ArrayList<BluetoothDevice> bluetoothDevices = new ArrayList<BluetoothDevice>();
 
     /*线程成员*/
+    AcceptThread serverThread = null;
     ConnectThread clientThread = null;
     ConnectedThread connectedThread = null;
 
@@ -100,7 +115,10 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
     TextView serverStateTextView;
     TextView receOrderTextView;
     TextView sendOrderTextView;
-	@Override
+    ImageView photoImageView;
+    Bitmap img;
+
+    @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
@@ -169,6 +187,9 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
             }
         });
 
+        /*打开服务器端线程*/
+        serverThread = new AcceptThread(mBluetoothAdapter,VideoActivity.this);
+        serverThread.start();
     }
 
 	@Override
@@ -232,7 +253,7 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
 		anychat.mSensorHelper.InitSensor(this);
 		// 初始化Camera上下文句柄
 		AnyChatCoreSDK.mCameraHelper.SetContext(this);
-
+        AnyChatCoreSDK.mCameraHelper.setActivity(VideoActivity.this);
 	}
 
 	private void initTimerShowTime() {
@@ -636,7 +657,12 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
                 receOrderTextView.setText(receOrder);
             }
         });
-        if (connectedThread != null) {
+        System.out.println(receOrder);
+        if (receOrder.equals("face"))
+        {
+            AnyChatCoreSDK.mCameraHelper.capture();
+        }else if (connectedThread != null) {
+            System.out.println("向蓝牙发送" + receOrder);
             connectedThread.write(receOrder);
         }
     }
@@ -649,6 +675,137 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
                 sendOrderTextView.setText(sendOrder);
             }
         });
+    }
+
+
+    public void setImage(final Bitmap image)
+    {
+        photoImageView = (ImageView) this.findViewById(R.id.photoImageView);
+
+        Matrix matrix = new Matrix();
+        matrix.reset();
+        matrix.setRotate(270);
+        img = Bitmap.createBitmap(image,0,0,image.getWidth(),image.getHeight(),matrix,true);
+        photoImageView.setImageBitmap(img);
+
+        FaceppDetect faceppDetect = new FaceppDetect();
+
+        faceppDetect.setDetectCallback(new DetectCallback() {
+
+            public void detectResult(JSONObject rst) {
+                //use the red paint
+                Paint paint = new Paint();
+                paint.setColor(Color.RED);
+                paint.setStrokeWidth(Math.max(img.getWidth(), img.getHeight()) / 100f);
+
+                //create a new canvas
+                Bitmap bitmap = Bitmap.createBitmap(img.getWidth(), img.getHeight(), img.getConfig());
+                Canvas canvas = new Canvas(bitmap);
+                canvas.drawBitmap(img, new Matrix(), null);
+
+                try {
+                    //find out all faces
+                    final int count = rst.getJSONArray("face").length();
+                    for (int i = 0; i < count; ++i) {
+                        float x, y, w, h;
+                        //get the center point
+                        x = (float)rst.getJSONArray("face").getJSONObject(i)
+                                .getJSONObject("position").getJSONObject("center").getDouble("x");
+                        y = (float)rst.getJSONArray("face").getJSONObject(i)
+                                .getJSONObject("position").getJSONObject("center").getDouble("y");
+
+                        //get face size
+                        w = (float)rst.getJSONArray("face").getJSONObject(i)
+                                .getJSONObject("position").getDouble("width");
+                        h = (float)rst.getJSONArray("face").getJSONObject(i)
+                                .getJSONObject("position").getDouble("height");
+                        System.out.println("笑容是：" + rst.getJSONArray("face").getJSONObject(i).getJSONObject("attribute").getJSONObject("smiling").getDouble("value"));
+
+                        //change percent value to the real size
+                        x = x / 100 * img.getWidth();
+                        w = w / 100 * img.getWidth() * 0.7f;
+                        y = y / 100 * img.getHeight();
+                        h = h / 100 * img.getHeight() * 0.7f;
+
+                        //draw the box to mark it out
+                        canvas.drawLine(x - w, y - h, x - w, y + h, paint);
+                        canvas.drawLine(x - w, y - h, x + w, y - h, paint);
+                        canvas.drawLine(x + w, y + h, x - w, y + h, paint);
+                        canvas.drawLine(x + w, y + h, x + w, y - h, paint);
+                    }
+
+                    //save new image
+                    img = bitmap;
+
+                    VideoActivity.this.runOnUiThread(new Runnable() {
+
+                        public void run() {
+                            //show the image
+                            photoImageView.setImageBitmap(img);
+                            System.out.println("检测到人脸啦");
+                        }
+                    });
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                   System.out.println("跪了");
+                }
+
+            }
+        });
+        faceppDetect.detect(img);
+
+    }
+
+
+
+
+
+    private class FaceppDetect {
+        DetectCallback callback = null;
+
+        public void setDetectCallback(DetectCallback detectCallback) {
+            callback = detectCallback;
+        }
+
+        public void detect(final Bitmap image) {
+
+            new Thread(new Runnable() {
+
+                public void run() {
+                    HttpRequests httpRequests = new HttpRequests("4480afa9b8b364e30ba03819f3e9eff5", "Pz9VFT8AP3g_Pz8_dz84cRY_bz8_Pz8M", true, false);
+                    //Log.v(TAG, "image size : " + img.getWidth() + " " + img.getHeight());
+
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    float scale = Math.min(1, Math.min(600f / img.getWidth(), 600f / img.getHeight()));
+                    Matrix matrix = new Matrix();
+                    matrix.postScale(scale, scale);
+
+                    Bitmap imgSmall = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, false);
+                    //Log.v(TAG, "imgSmall size : " + imgSmall.getWidth() + " " + imgSmall.getHeight());
+
+                    imgSmall.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                    byte[] array = stream.toByteArray();
+
+                    try {
+                        //detect
+                        JSONObject result = httpRequests.detectionDetect(new PostParameters().setImg(array));
+                        System.out.println(result);
+                        //finished , then call the callback function
+                        if (callback != null) {
+                            callback.detectResult(result);
+                        }
+                    } catch (FaceppParseException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }).start();
+        }
+    }
+
+    interface DetectCallback {
+        void detectResult(JSONObject rst);
     }
 
     public void manageBluetoothConnectedSocket(BluetoothSocket socket)

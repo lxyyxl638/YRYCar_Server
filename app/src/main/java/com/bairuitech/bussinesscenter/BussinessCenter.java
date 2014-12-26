@@ -102,8 +102,8 @@ public class BussinessCenter{
 		} else {
 			strMsg = userItem.getUserName() + "上线";
 		}
-		if (mContext != null)
-			BaseMethod.showToast(strMsg, mContext);
+//		if (mContext != null)
+//			BaseMethod.showToast(strMsg, mContext);
 	}
 
 	public void realse() {

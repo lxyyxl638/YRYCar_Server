@@ -23,11 +23,14 @@
 
     <include
         android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:layout_weight="1"
+        android:layout_height="1dp"
         layout="@layout/video_session"
-        android:gravity="center_vertical" />
-
+        android:gravity="center_vertical"/>
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:id="@+id/photoImageView"
+        android:visibility="visible" />
     <Button
         android:id="@+id/scanBtn"
         android:layout_width="wrap_content"
@@ -99,7 +102,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text = ""/>
+            android:text = "收到的指令"/>
 
     </LinearLayout>
 
@@ -119,7 +122,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text = ""/>
+            android:text = "发送的指令"/>
 
     </LinearLayout>
 
