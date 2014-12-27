@@ -652,19 +652,21 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
 
     public void setReceOrder(final String receOrder)
     {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                receOrderTextView.setText(receOrder);
+        if (receOrder.length() > 2) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    receOrderTextView.setText(receOrder);
+                }
+            });
+
+//        System.out.println(receOrder);
+            if (receOrder.equals("face")) {
+                AnyChatCoreSDK.mCameraHelper.capture();
+            } else if (connectedThread != null) {
+//            System.out.println("向蓝牙发送" + receOrder);
+                connectedThread.write(receOrder);
             }
-        });
-        System.out.println(receOrder);
-        if (receOrder.equals("face"))
-        {
-            AnyChatCoreSDK.mCameraHelper.capture();
-        }else if (connectedThread != null) {
-            System.out.println("向蓝牙发送" + receOrder);
-            connectedThread.write(receOrder);
         }
     }
 
@@ -727,11 +729,19 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
                         {
                             MediaPlayer mediaPlayer = MediaPlayer.create(VideoActivity.this,R.raw.smile_1);
                             mediaPlayer.start();
+                            if (connectedThread!=null)
+                            {
+                                connectedThread.write("7");
+                            }
                         }
                         else
                         {
                             MediaPlayer mediaPlayer = MediaPlayer.create(VideoActivity.this,R.raw.smile_2);
                             mediaPlayer.start();
+                            if (connectedThread!=null)
+                            {
+                                connectedThread.write("8");
+                            }
                         }
                         //change percent value to the real size
                         x = x / 100 * img.getWidth();

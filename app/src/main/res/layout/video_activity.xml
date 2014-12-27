@@ -2,8 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/main_head"
-    android:orientation="vertical" >
+    android:background="#fffaaead"
+    android:orientation="vertical">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -35,7 +35,10 @@
         android:id="@+id/scanBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="扫描" />
+        android:text="扫描"
+        android:textSize="18dp"
+        android:textColor="#ffffffff"
+        android:background="#fffaadac" />
 
     <ListView
         android:id="@+id/list"
@@ -44,85 +47,100 @@
         android:layout_below="@id/scanBtn"
         android:divider="#0f0"
         android:dividerHeight="2px"
-        android:headerDividersEnabled="false" />
+        android:headerDividersEnabled="false"
+        android:background="#fffaadac" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:background="#fffaadac">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="服务器状态:"
             android:textSize="20sp"
-            android:layout_weight="2"/>
+            android:layout_weight="2"
+            android:textColor="#ffffffff"/>
         <TextView
             android:id="@+id/serverStateTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text = ""/>
+            android:text = ""
+            android:textColor="#ffffffff"/>
 
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:background="#fffaaead">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="蓝牙状态:"
             android:textSize="20sp"
-            android:layout_weight="2"/>
+            android:layout_weight="2"
+            android:textColor="#ffffffff"/>
         <TextView
             android:id="@+id/bluetoothStateTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text = ""/>
+            android:text = ""
+            android:textColor="#ffffffff"/>
 
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:background="#fffaaead"
+        android:baselineAligned="false">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="收到的指令:"
             android:textSize="20sp"
-            android:layout_weight="2"/>
+            android:layout_weight="2"
+            android:textColor="#ffffffff"/>
         <TextView
             android:id="@+id/receOrderTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text = "收到的指令"/>
+            android:text = "收到的指令"
+            android:textColor="#ffffffff"/>
 
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:baselineAligned="false"
+        android:background="#fffaadac">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="发送的指令:"
             android:textSize="20sp"
-            android:layout_weight="2"/>
+            android:layout_weight="2"
+            android:textColor="#ffffffff"/>
         <TextView
             android:id="@+id/sendOrderTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text = "发送的指令"/>
+            android:text = "发送的指令"
+            android:textColor="#ffffffff"/>
 
     </LinearLayout>
 
@@ -130,19 +148,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:orientation="horizontal" >
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/btn_endsession"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/end_session_bg"
+            android:background="@drawable/finish"
             android:gravity="center"
-            android:padding="10dip"
-            android:text="@string/end_session"
-            android:textColor="@color/dancen"
-            android:textSize="18sp" />
+            android:padding="10dip"/>
 
         <ImageView
             android:id="@+id/img_switch"
@@ -150,9 +165,9 @@
             android:layout_height="wrap_content"
             android:layout_marginRight="8dip"
             android:layout_weight="1"
-            android:background="@drawable/btn_switchvideo_background"
-            android:src="@drawable/switchvideo"
-            android:visibility="invisible" />
+            android:background="@drawable/turn_camera"
+            android:src="@drawable/turn_camera"
+            android:visibility="visible" />
     </LinearLayout>
 
 </LinearLayout>

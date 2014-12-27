@@ -30,8 +30,8 @@
         android:textColor="#ffffb013"
         android:background="#ffffffff"
         android:alpha="0.7"
-        android:layout_alignBottom="@+id/linearLayout"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="195dp" />
 
     <Button
         android:id="@+id/loginBtn"

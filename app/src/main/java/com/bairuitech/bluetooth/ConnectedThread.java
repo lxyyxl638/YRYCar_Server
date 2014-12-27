@@ -57,12 +57,12 @@ public class ConnectedThread extends Thread {
     /* Call this from the main activity to send data to the remote device */
     public void write(String message) {
         try {
+            myActivity.setSendOrder(message);
             message = message + "\n";
             byte[] bytes = message.getBytes("UTF-8");
             mmOutStream.write(bytes);
             mmOutStream.flush();
-            System.out.println("发送出了神奇的" + message);
-            myActivity.setSendOrder(message);
+//            System.out.println("发送出了神奇的" + message);
         } catch (IOException e) { }
     }
 
