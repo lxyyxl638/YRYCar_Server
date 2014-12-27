@@ -20,6 +20,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.media.Image;
+import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -721,6 +722,17 @@ public class VideoActivity extends Activity implements AnyChatBaseEvent,
                                 .getJSONObject("position").getDouble("height");
                         System.out.println("笑容是：" + rst.getJSONArray("face").getJSONObject(i).getJSONObject("attribute").getJSONObject("smiling").getDouble("value"));
 
+                        Double smileValue = rst.getJSONArray("face").getJSONObject(i).getJSONObject("attribute").getJSONObject("smiling").getDouble("value");
+                        if (smileValue < 5)
+                        {
+                            MediaPlayer mediaPlayer = MediaPlayer.create(VideoActivity.this,R.raw.smile_1);
+                            mediaPlayer.start();
+                        }
+                        else
+                        {
+                            MediaPlayer mediaPlayer = MediaPlayer.create(VideoActivity.this,R.raw.smile_2);
+                            mediaPlayer.start();
+                        }
                         //change percent value to the real size
                         x = x / 100 * img.getWidth();
                         w = w / 100 * img.getWidth() * 0.7f;
